@@ -28,6 +28,17 @@ The Swagger documentation includes:
 
 See [SWAGGER_TESTING.md](./SWAGGER_TESTING.md) for a complete guide on testing with Swagger.
 
+## 🚀 Production Deployment
+
+For production deployment instructions, see [DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
+
+The guide covers:
+- Docker production deployment
+- Manual server setup
+- Security best practices
+- Monitoring and scaling
+- Backup and recovery procedures
+
 ## 📋 NPM Scripts
 
 All available npm scripts are documented in [SCRIPTS.md](./SCRIPTS.md).
