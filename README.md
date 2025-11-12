@@ -457,13 +457,14 @@ sequenceDiagram
     else Rate Limit OK
         API Gateway->>Score Service: Update Score Request
 
-        Score Service->>Database: Get Current Score (user_id)
+        Score Service->>Database: Get Current Score (user_id) FOR UPDATE
         Database-->>Score Service: Current Score
 
         Score Service->>Score Service: Validate Score Increment
-        Score Service->>Score Service: Calculate New Score
 
-        Score Service->>Database: UPDATE scores SET score = new_score
+        Score Service->>Database: INSERT ... ON CONFLICT<br/>DO UPDATE SET score = score + increment<br/>RETURNING score
+        Database-->>Score Service: New Score
+
         Score Service->>Database: INSERT INTO score_history
         Database-->>Score Service: Success
 

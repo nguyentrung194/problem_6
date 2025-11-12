@@ -51,7 +51,7 @@ export async function updateScore(
   try {
     await client.query('BEGIN');
 
-    // Get current score
+    // Get current score (needed for history)
     const currentResult = await client.query(
       'SELECT score FROM scores WHERE user_id = $1 FOR UPDATE',
       [userId]
@@ -60,16 +60,17 @@ export async function updateScore(
     const currentScore =
       currentResult.rows.length > 0 ? parseInt(currentResult.rows[0].score as string, 10) : 0;
 
-    const newScore = currentScore + scoreIncrement;
-
-    // Update or insert score
-    await client.query(
+    // Update or insert score using increment pattern
+    const updateResult = await client.query(
       `INSERT INTO scores (user_id, score, updated_at)
        VALUES ($1, $2, CURRENT_TIMESTAMP)
        ON CONFLICT (user_id) 
-       DO UPDATE SET score = $2, updated_at = CURRENT_TIMESTAMP`,
-      [userId, newScore]
+       DO UPDATE SET score = score + $2, updated_at = CURRENT_TIMESTAMP
+       RETURNING score`,
+      [userId, scoreIncrement]
     );
+
+    const newScore = parseInt(updateResult.rows[0].score as string, 10);
 
     // Insert into history
     await client.query(
