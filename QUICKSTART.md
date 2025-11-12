@@ -2,7 +2,28 @@
 
 Get the scoreboard service up and running in 5 minutes!
 
-## Prerequisites Check
+## Option 1: Docker (Recommended - Easiest)
+
+**Prerequisites**: Docker and Docker Compose installed
+
+```bash
+# Start all services (PostgreSQL, Redis, and the app)
+docker-compose up
+
+# Or run in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+```
+
+That's it! The service will be available at `http://localhost:3000`
+
+The database schema is automatically initialized. See [DOCKER.md](./DOCKER.md) for more details.
+
+## Option 2: Local Development
+
+### Prerequisites Check
 
 ```bash
 # Check Node.js version (need 18+)
@@ -15,7 +36,7 @@ pg_isready
 redis-cli ping
 ```
 
-## Installation
+### Installation
 
 ```bash
 # 1. Install dependencies
@@ -76,7 +97,22 @@ curl -X POST http://localhost:3000/api/v1/scores/update \
 curl http://localhost:3000/api/v1/scores/leaderboard
 ```
 
-### 4. Connect WebSocket (JavaScript)
+### 4. View API Documentation
+
+Open your browser and navigate to:
+
+```
+http://localhost:3000/api-docs
+```
+
+This will show the interactive Swagger API documentation where you can:
+
+- View all available endpoints
+- See request/response schemas
+- Test API endpoints directly from the browser
+- Authenticate using the "Authorize" button
+
+### 5. Connect WebSocket (JavaScript)
 
 ```javascript
 const WebSocket = require('ws');
@@ -99,15 +135,18 @@ ws.on('message', (data) => {
 ## Common Issues
 
 ### "Database connection failed"
+
 - Check PostgreSQL is running: `pg_isready`
 - Verify credentials in `.env`
 - Ensure database exists: `createdb scoreboard_db`
 
 ### "Redis connection failed"
+
 - Check Redis is running: `redis-cli ping`
 - The app will work without Redis, but caching won't function
 
 ### "Port 3000 already in use"
+
 - Change `PORT` in `.env`
 - Or kill the process: `lsof -ti:3000 | xargs kill`
 
@@ -119,14 +158,15 @@ ws.on('message', (data) => {
 
 ## API Endpoints Summary
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/auth/register` | No | Register new user |
-| POST | `/api/v1/auth/login` | No | Login user |
-| POST | `/api/v1/scores/update` | Yes | Update score |
-| GET | `/api/v1/scores/me` | Yes | Get my score |
-| GET | `/api/v1/scores/leaderboard` | Optional | Get top 10 |
-| WS | `/api/v1/scores/live` | Yes | Real-time updates |
+| Method | Endpoint                     | Auth     | Description               |
+| ------ | ---------------------------- | -------- | ------------------------- |
+| POST   | `/api/v1/auth/register`      | No       | Register new user         |
+| POST   | `/api/v1/auth/login`         | No       | Login user                |
+| POST   | `/api/v1/scores/update`      | Yes      | Update score              |
+| GET    | `/api/v1/scores/me`          | Yes      | Get my score              |
+| GET    | `/api/v1/scores/leaderboard` | Optional | Get top 10                |
+| WS     | `/api/v1/scores/live`        | Yes      | Real-time updates         |
+| GET    | `/api-docs`                  | No       | Swagger API documentation |
 
 ## Example Flow
 
@@ -137,4 +177,3 @@ ws.on('message', (data) => {
 5. **Update Score Again** → See live update in WebSocket!
 
 Enjoy! 🎮
-

@@ -1,5 +1,5 @@
 import pool from '../config/database.ts';
-import redisClient from '../config/redis.ts';
+import redisClient, { ensureConnected } from '../config/redis.ts';
 import { validateTimestamp } from '../middleware/validator.ts';
 import { UpdateScoreResult } from '../types/index.ts';
 
@@ -11,6 +11,9 @@ const USER_SCORE_CACHE_TTL = 300; // 5 minutes
  */
 export async function getUserScore(userId: string): Promise<number> {
   try {
+    // Ensure Redis is connected
+    await ensureConnected();
+
     // Try cache first
     const cacheKey = `user_score:${userId}`;
     const cached = await redisClient.get(cacheKey);
@@ -19,10 +22,7 @@ export async function getUserScore(userId: string): Promise<number> {
     }
 
     // Query database
-    const result = await pool.query(
-      'SELECT score FROM scores WHERE user_id = $1',
-      [userId]
-    );
+    const result = await pool.query('SELECT score FROM scores WHERE user_id = $1', [userId]);
 
     const score = result.rows.length > 0 ? parseInt(result.rows[0].score as string, 10) : 0;
 
@@ -57,9 +57,8 @@ export async function updateScore(
       [userId]
     );
 
-    const currentScore = currentResult.rows.length > 0 
-      ? parseInt(currentResult.rows[0].score as string, 10) 
-      : 0;
+    const currentScore =
+      currentResult.rows.length > 0 ? parseInt(currentResult.rows[0].score as string, 10) : 0;
 
     const newScore = currentScore + scoreIncrement;
 
@@ -144,9 +143,11 @@ export async function isUserInTop10(userId: string): Promise<boolean> {
  */
 async function invalidateUserScoreCache(userId: string): Promise<void> {
   try {
+    await ensureConnected();
     await redisClient.del(`user_score:${userId}`);
   } catch (error) {
     console.error('Error invalidating user score cache:', error);
+    // Continue without cache invalidation
   }
 }
 
@@ -155,9 +156,11 @@ async function invalidateUserScoreCache(userId: string): Promise<void> {
  */
 async function invalidateLeaderboardCache(): Promise<void> {
   try {
+    await ensureConnected();
     await redisClient.del(LEADERBOARD_CACHE_KEY);
   } catch (error) {
     console.error('Error invalidating leaderboard cache:', error);
+    // Continue without cache invalidation
   }
 }
 
@@ -180,4 +183,3 @@ export function validateScoreUpdateRequest(
 
   return true;
 }
-

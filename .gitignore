@@ -6,6 +6,7 @@ yarn.lock
 # Environment variables
 .env
 .env.local
+.env.test
 .env.*.local
 
 # Logs
@@ -39,3 +40,8 @@ build/
 *.sqlite
 *.db
 
+# Docker
+.docker/
+
+# Husky
+.husky/_/

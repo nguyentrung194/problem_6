@@ -152,32 +152,43 @@ ws.on('message', (data) => {
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/v1/auth/register` - Register new user
 - `POST /api/v1/auth/login` - Login user
 
 ### Scores
+
 - `POST /api/v1/scores/update` - Update user's score (requires auth)
 - `GET /api/v1/scores/me` - Get current user's score (requires auth)
 
 ### Leaderboard
+
 - `GET /api/v1/scores/leaderboard` - Get top 10 leaderboard (optional auth)
 
 ### WebSocket
+
 - `WS /api/v1/scores/live?token=JWT_TOKEN` - Real-time leaderboard updates
+
+### Documentation
+
+- `GET /api-docs` - Swagger API documentation (interactive)
 
 ## Troubleshooting
 
 ### Database Connection Issues
+
 - Verify PostgreSQL is running: `pg_isready`
 - Check database credentials in `.env`
 - Ensure database exists and user has permissions
 
 ### Redis Connection Issues
+
 - Verify Redis is running: `redis-cli ping`
 - Check Redis configuration in `.env`
 - The application will continue without Redis but caching won't work
 
 ### Port Already in Use
+
 - Change `PORT` in `.env` file
 - Or kill the process using port 3000: `lsof -ti:3000 | xargs kill`
 
@@ -206,10 +217,61 @@ scoreboard-service/
 ### Running Tests
 
 ```bash
+# Run all tests
 npm test
+
+# Run tests in watch mode (auto-rerun on file changes)
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests for CI (with coverage and optimized for CI environments)
+npm run test:ci
 ```
+
+See [tests/README.md](./tests/README.md) for more details on writing tests.
 
 ### Code Style
 
 The project uses ES6 modules and follows standard Node.js conventions.
 
+#### Prettier
+
+The project uses Prettier for code formatting. Format your code with:
+
+```bash
+# Format all code
+npm run format
+
+# Check formatting without making changes
+npm run format:check
+
+# Run format check and type check
+npm run lint:format
+```
+
+**VS Code Integration**: If you use VS Code, install the Prettier extension and format on save will work automatically (see `.vscode/settings.json`).
+
+**Pre-commit Hooks**: The project uses Husky to automatically run checks before commits:
+
+```bash
+# After installing dependencies, Husky will be set up automatically
+npm install
+
+# The pre-commit hook will:
+# 1. Format staged files with Prettier
+# 2. Run type checking on staged TypeScript files
+# 3. Run tests related to staged files
+# 4. Run full type check
+# 5. Run all tests
+```
+
+To manually set up Husky (if needed):
+
+```bash
+npm install
+npx husky install
+```
+
+The pre-commit hook is configured in `.husky/pre-commit` and uses `lint-staged` for efficient checks on only staged files.

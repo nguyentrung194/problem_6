@@ -1,5 +1,4 @@
 import { Request } from 'express';
-import { WebSocket } from 'ws';
 
 // User types
 export interface User {
@@ -157,4 +156,3 @@ export interface ConnectionStats {
   uniqueUsers: number;
   maxConnections: number;
 }
-

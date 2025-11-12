@@ -10,11 +10,11 @@ async function migrate(): Promise<void> {
   try {
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
-    
+
     console.log('🔄 Running database migrations...');
     await pool.query(schema);
     console.log('✅ Database migrations completed successfully');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Migration failed:', error);
@@ -23,4 +23,3 @@ async function migrate(): Promise<void> {
 }
 
 migrate();
-

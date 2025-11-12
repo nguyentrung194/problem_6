@@ -3,13 +3,53 @@ import bcrypt from 'bcryptjs';
 import pool from '../config/database.ts';
 import { generateToken } from '../middleware/auth.ts';
 import { body, validationResult } from 'express-validator';
-import { ErrorResponse, SuccessResponse, AuthResponse, RegisterRequest, LoginRequest } from '../types/index.ts';
+import {
+  ErrorResponse,
+  SuccessResponse,
+  AuthResponse,
+  RegisterRequest,
+  LoginRequest,
+} from '../types/index.ts';
 
 const router = express.Router();
 
 /**
- * POST /api/v1/auth/register
- * Register a new user (for testing purposes)
+ * @swagger
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post(
   '/register',
@@ -65,10 +105,7 @@ router.post(
       );
 
       // Initialize score
-      await pool.query(
-        'INSERT INTO scores (user_id, score) VALUES ($1, 0)',
-        [userId]
-      );
+      await pool.query('INSERT INTO scores (user_id, score) VALUES ($1, 0)', [userId]);
 
       // Generate token
       const token = generateToken(userId, username);
@@ -99,15 +136,46 @@ router.post(
 );
 
 /**
- * POST /api/v1/auth/login
- * Login user
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post(
   '/login',
-  [
-    body('username').notEmpty(),
-    body('password').notEmpty(),
-  ],
+  [body('username').notEmpty(), body('password').notEmpty()],
   async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req);
@@ -188,4 +256,3 @@ router.post(
 );
 
 export default router;
-

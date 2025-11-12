@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { IncomingMessage } from 'http';
 import jwt from 'jsonwebtoken';
-import { createClient, RedisClientType } from 'redis';
+import { RedisClientType } from 'redis';
 import redisClient from '../config/redis.ts';
 import { getLeaderboard } from './leaderboardService.ts';
 import dotenv from 'dotenv';
@@ -26,7 +26,7 @@ const connections = new Map<string, Set<WebSocket>>(); // userId -> Set of WebSo
  * Initialize WebSocket server
  */
 export function initializeWebSocketServer(server: Server): void {
-  wss = new WebSocketServer({ 
+  wss = new WebSocketServer({
     server,
     path: '/api/v1/scores/live',
   });
@@ -45,8 +45,7 @@ export function initializeWebSocketServer(server: Server): void {
 async function handleConnection(ws: WebSocket, req: IncomingMessage): Promise<void> {
   // Extract token from query string or headers
   const url = new URL(req.url || '', `http://${req.headers.host}`);
-  const token = url.searchParams.get('token') || 
-                req.headers.authorization?.split(' ')[1];
+  const token = url.searchParams.get('token') || req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     ws.close(1008, 'Authentication required');
@@ -86,10 +85,12 @@ async function handleConnection(ws: WebSocket, req: IncomingMessage): Promise<vo
       const data = JSON.parse(message.toString());
       if (data.type === 'subscribe') {
         // Already subscribed by default
-        ws.send(JSON.stringify({
-          type: 'subscribed',
-          channel: 'leaderboard',
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'subscribed',
+            channel: 'leaderboard',
+          })
+        );
       }
     } catch (error) {
       console.error('Error parsing WebSocket message:', error);
@@ -129,7 +130,9 @@ async function handleConnection(ws: WebSocket, req: IncomingMessage): Promise<vo
 /**
  * Broadcast leaderboard update to all connected clients
  */
-export async function broadcastLeaderboardUpdate(updatedUserId: string | null = null): Promise<void> {
+export async function broadcastLeaderboardUpdate(
+  updatedUserId: string | null = null
+): Promise<void> {
   if (!wss) return;
 
   try {
@@ -139,10 +142,13 @@ export async function broadcastLeaderboardUpdate(updatedUserId: string | null = 
       type: 'scoreboard_update',
       data: {
         leaderboard: leaderboard.leaderboard,
-        updated_user: updatedUserId && leaderboard.userRank ? {
-          user_id: updatedUserId,
-          new_rank: leaderboard.userRank,
-        } : null,
+        updated_user:
+          updatedUserId && leaderboard.userRank
+            ? {
+                user_id: updatedUserId,
+                new_rank: leaderboard.userRank,
+              }
+            : null,
         timestamp: new Date().toISOString(),
       },
     };
@@ -174,12 +180,9 @@ async function setupRedisSubscriber(): Promise<void> {
     }) as RedisClientType;
 
     await subscriber.connect();
-    
-    // Subscribe to channel
-    await subscriber.subscribe('leaderboard:updates');
 
-    // Handle messages
-    subscriber.on('message', (channel: string, message: string) => {
+    // Set up message handler - must be done before subscribe
+    const messageHandler = (message: string, channel: string) => {
       if (channel === 'leaderboard:updates') {
         try {
           const data = JSON.parse(message) as { userId: string; timestamp: number };
@@ -188,7 +191,10 @@ async function setupRedisSubscriber(): Promise<void> {
           console.error('Error processing Redis message:', error);
         }
       }
-    });
+    };
+
+    // Subscribe to channel with message handler
+    await subscriber.subscribe('leaderboard:updates', messageHandler);
 
     console.log('✅ Redis subscriber connected');
   } catch (error) {
@@ -226,4 +232,3 @@ export function getConnectionStats(): ConnectionStats {
     maxConnections: WS_MAX_CONNECTIONS,
   };
 }
-

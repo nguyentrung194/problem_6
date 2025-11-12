@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scoreboard-postgres-prod
+    environment:
+      POSTGRES_DB: ${DB_NAME:-scoreboard_db}
+      POSTGRES_USER: ${DB_USER:-scoreboard_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-scoreboard_user} -d ${DB_NAME:-scoreboard_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scoreboard-network-prod
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: scoreboard-redis-prod
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data_prod:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scoreboard-network-prod
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scoreboard-app-prod
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-scoreboard_db}
+      DB_USER: ${DB_USER:-scoreboard_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
+      RATE_LIMIT_PER_USER: ${RATE_LIMIT_PER_USER:-60}
+      RATE_LIMIT_PER_IP: ${RATE_LIMIT_PER_IP:-1000}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      WS_HEARTBEAT_INTERVAL: ${WS_HEARTBEAT_INTERVAL:-30}
+      WS_MAX_CONNECTIONS: ${WS_MAX_CONNECTIONS:-10000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - scoreboard-network-prod
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:
+
+networks:
+  scoreboard-network-prod:
+    driver: bridge
+

@@ -1,5 +1,5 @@
 import pool from '../config/database.ts';
-import redisClient from '../config/redis.ts';
+import redisClient, { ensureConnected } from '../config/redis.ts';
 import { LeaderboardEntry, LeaderboardResponse } from '../types/index.ts';
 
 const LEADERBOARD_CACHE_KEY = 'leaderboard:top10';
@@ -8,8 +8,14 @@ const LEADERBOARD_CACHE_TTL = 30; // 30 seconds
 /**
  * Get top N users from leaderboard
  */
-export async function getTopUsers(limit: number = 10, offset: number = 0): Promise<LeaderboardEntry[]> {
+export async function getTopUsers(
+  limit: number = 10,
+  offset: number = 0
+): Promise<LeaderboardEntry[]> {
   try {
+    // Ensure Redis is connected
+    await ensureConnected();
+
     // Try cache first
     if (offset === 0) {
       const cached = await redisClient.get(LEADERBOARD_CACHE_KEY);
@@ -102,4 +108,3 @@ export async function getLeaderboard(
     lastUpdated: new Date().toISOString(),
   };
 }
-

@@ -25,7 +25,10 @@ export const validate = (req: Request, res: Response, next: NextFunction): void 
 /**
  * Score update validation rules
  */
-export const validateScoreUpdate: ValidationChain[] = [
+export const validateScoreUpdate: (
+  | ValidationChain
+  | ((req: Request, res: Response, next: NextFunction) => void)
+)[] = [
   body('score_increment')
     .isInt({ min: 1, max: 1000 })
     .withMessage('Score increment must be between 1 and 1000'),
@@ -34,10 +37,7 @@ export const validateScoreUpdate: ValidationChain[] = [
     .isString()
     .isLength({ min: 1, max: 255 })
     .withMessage('Action ID must be a valid string'),
-  body('timestamp')
-    .optional()
-    .isInt()
-    .withMessage('Timestamp must be a valid integer'),
+  body('timestamp').optional().isInt().withMessage('Timestamp must be a valid integer'),
   validate,
 ];
 
@@ -46,7 +46,7 @@ export const validateScoreUpdate: ValidationChain[] = [
  */
 export function validateTimestamp(timestamp: number | undefined): boolean {
   if (!timestamp) return true; // Optional field
-  
+
   const now = Date.now();
   const requestTime = parseInt(timestamp.toString(), 10);
   const timeDiff = Math.abs(now - requestTime);
@@ -54,4 +54,3 @@ export function validateTimestamp(timestamp: number | undefined): boolean {
 
   return timeDiff <= maxTimeDiff;
 }
-

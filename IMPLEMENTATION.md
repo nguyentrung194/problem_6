@@ -49,6 +49,7 @@ The implementation follows a **layered architecture** pattern:
 - **Graceful degradation**: Falls back to in-memory if Redis unavailable
 
 **Rate Limits**:
+
 - Per user: 60 requests/minute (default)
 - Per IP: 1000 requests/minute (default)
 
@@ -57,12 +58,14 @@ The implementation follows a **layered architecture** pattern:
 **File**: `src/services/scoreService.ts`
 
 **Key Functions**:
+
 - `getUserScore(userId)`: Get user's current score (with caching)
 - `updateScore(userId, increment, ...)`: Update score atomically
 - `getUserRank(userId)`: Calculate user's rank
 - `isUserInTop10(userId)`: Check if user is in top 10
 
 **Features**:
+
 - **Atomic updates**: Uses database transactions
 - **Audit trail**: All score changes logged to `score_history`
 - **Cache invalidation**: Automatically invalidates caches on update
@@ -73,11 +76,13 @@ The implementation follows a **layered architecture** pattern:
 **File**: `src/services/leaderboardService.ts`
 
 **Key Functions**:
+
 - `getTopUsers(limit, offset)`: Get top N users
 - `getLeaderboard(limit, offset, userId)`: Get leaderboard with user rank
 - `getTotalUsers()`: Get total user count
 
 **Caching Strategy**:
+
 - **Cache key**: `leaderboard:top10`
 - **TTL**: 30 seconds
 - **Cache invalidation**: On any score update affecting top 10
@@ -88,6 +93,7 @@ The implementation follows a **layered architecture** pattern:
 **File**: `src/services/websocketService.ts`
 
 **Features**:
+
 - **Authentication**: Requires JWT token on connection
 - **Initial state**: Sends current leaderboard on connect
 - **Real-time updates**: Broadcasts updates when top 10 changes
@@ -95,6 +101,7 @@ The implementation follows a **layered architecture** pattern:
 - **Cross-server**: Redis Pub/Sub for multi-server deployments
 
 **Message Types**:
+
 - `leaderboard`: Initial leaderboard data
 - `scoreboard_update`: Real-time update notification
 - `subscribed`: Confirmation of subscription
@@ -127,6 +134,7 @@ The implementation follows a **layered architecture** pattern:
    - `created_at`: Timestamp
 
 **Indexes**:
+
 - `idx_scores_score_desc`: For efficient leaderboard queries
 - `idx_scores_user_id`: For fast user lookups
 - `idx_score_history_user_id`: For user history queries
@@ -135,12 +143,14 @@ The implementation follows a **layered architecture** pattern:
 ### 7. Caching Strategy
 
 **Redis Keys**:
+
 - `leaderboard:top10`: Cached top 10 leaderboard (TTL: 30s)
 - `user_score:{userId}`: Cached user score (TTL: 5min)
 - `rate_limit:user:{userId}`: User rate limit counter
 - `rate_limit:ip:{ip}`: IP rate limit counter
 
 **Cache Invalidation**:
+
 - User score cache: Invalidated on score update
 - Leaderboard cache: Invalidated on any score update
 - Rate limit keys: Auto-expire based on window
@@ -148,25 +158,30 @@ The implementation follows a **layered architecture** pattern:
 ## Security Features
 
 ### 1. Authentication
+
 - JWT tokens with expiration
 - Token validation on every protected request
 - Secure password hashing (bcrypt)
 
 ### 2. Authorization
+
 - Users can only update their own scores
 - User ID extracted from JWT (cannot be spoofed)
 
 ### 3. Input Validation
+
 - Score increment: 1-1000 range
 - Action ID: Optional string validation
 - Timestamp: Replay attack prevention (5-minute window)
 
 ### 4. Rate Limiting
+
 - Per-user limits prevent individual abuse
 - Per-IP limits prevent distributed attacks
 - Redis-backed for distributed systems
 
 ### 5. Audit Trail
+
 - All score updates logged with:
   - IP address
   - User agent
@@ -176,21 +191,25 @@ The implementation follows a **layered architecture** pattern:
 ## Performance Optimizations
 
 ### 1. Database
+
 - Indexed queries for leaderboard
 - Connection pooling
 - Read replicas support (configurable)
 
 ### 2. Caching
+
 - Multi-layer caching (Redis + in-memory)
 - Smart cache invalidation
 - Cache warming on startup
 
 ### 3. Query Optimization
+
 - Efficient top-N queries using indexes
 - Pagination support
 - Minimal data transfer
 
 ### 4. WebSocket
+
 - Connection pooling
 - Heartbeat for dead connection detection
 - Binary protocol support (future)
@@ -224,6 +243,7 @@ The implementation follows a **layered architecture** pattern:
 ### Manual Testing
 
 1. **Register User**:
+
    ```bash
    curl -X POST http://localhost:3000/api/v1/auth/register \
      -H "Content-Type: application/json" \
@@ -231,6 +251,7 @@ The implementation follows a **layered architecture** pattern:
    ```
 
 2. **Update Score**:
+
    ```bash
    curl -X POST http://localhost:3000/api/v1/scores/update \
      -H "Authorization: Bearer TOKEN" \
@@ -263,6 +284,7 @@ ws.on('message', (data) => {
 ### Environment Variables
 
 All configuration via environment variables:
+
 - Database connection
 - Redis connection
 - JWT secret
@@ -272,17 +294,20 @@ All configuration via environment variables:
 ### Scaling
 
 **Horizontal Scaling**:
+
 - Stateless API servers
 - Load balancer in front
 - Shared Redis for caching
 - Shared PostgreSQL database
 
 **Database Scaling**:
+
 - Read replicas for leaderboard queries
 - Connection pooling
 - Query optimization
 
 **WebSocket Scaling**:
+
 - Redis Pub/Sub for cross-server communication
 - Sticky sessions (optional)
 - Connection limits per server
@@ -290,6 +315,7 @@ All configuration via environment variables:
 ### Monitoring
 
 **Key Metrics**:
+
 - Request rate
 - Response latency
 - Error rate
@@ -298,6 +324,7 @@ All configuration via environment variables:
 - Database connection pool usage
 
 **Health Checks**:
+
 - `/health` endpoint
 - Database connectivity
 - Redis connectivity
@@ -312,4 +339,3 @@ All configuration via environment variables:
 6. **Machine Learning**: Anomaly detection
 7. **Microservices**: Split into separate services
 8. **Event Sourcing**: Complete audit trail
-

@@ -1,14 +1,16 @@
 import { Response } from 'express';
 import { getLeaderboard } from '../services/leaderboardService.ts';
-import { AuthenticatedRequest, ErrorResponse, SuccessResponse, LeaderboardResponse } from '../types/index.ts';
+import {
+  AuthenticatedRequest,
+  ErrorResponse,
+  SuccessResponse,
+  LeaderboardResponse,
+} from '../types/index.ts';
 
 /**
  * Get leaderboard
  */
-export async function getLeaderboardData(
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> {
+export async function getLeaderboardData(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const limit = parseInt((req.query.limit as string) || '10', 10);
     const offset = parseInt((req.query.offset as string) || '0', 10);
@@ -47,4 +49,3 @@ export async function getLeaderboardData(
     res.status(500).json(errorResponse);
   }
 }
-

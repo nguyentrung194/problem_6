@@ -6,23 +6,28 @@ import {
   isUserInTop10,
   validateScoreUpdateRequest,
 } from '../services/scoreService.ts';
-import { broadcastLeaderboardUpdate, publishLeaderboardUpdate } from '../services/websocketService.ts';
-import { AuthenticatedRequest, ErrorResponse, SuccessResponse, ScoreUpdateResponse } from '../types/index.ts';
+import {
+  broadcastLeaderboardUpdate,
+  publishLeaderboardUpdate,
+} from '../services/websocketService.ts';
+import {
+  AuthenticatedRequest,
+  ErrorResponse,
+  SuccessResponse,
+  ScoreUpdateResponse,
+} from '../types/index.ts';
 
 /**
  * Update user's score
  */
-export async function updateUserScore(
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> {
+export async function updateUserScore(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { score_increment, action_id, timestamp } = req.body as {
       score_increment: number;
       action_id?: string;
       timestamp?: number;
     };
-    
+
     if (!req.user) {
       const errorResponse: ErrorResponse = {
         success: false,
@@ -71,7 +76,7 @@ export async function updateUserScore(
     if (inTop10) {
       // Broadcast to WebSocket clients
       await broadcastLeaderboardUpdate(userId);
-      
+
       // Publish to Redis for cross-server communication
       await publishLeaderboardUpdate(userId);
     }
@@ -105,10 +110,7 @@ export async function updateUserScore(
 /**
  * Get user's current score
  */
-export async function getUserScoreInfo(
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> {
+export async function getUserScoreInfo(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     if (!req.user) {
       const errorResponse: ErrorResponse = {
@@ -148,4 +150,3 @@ export async function getUserScoreInfo(
     res.status(500).json(errorResponse);
   }
 }
-

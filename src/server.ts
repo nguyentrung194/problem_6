@@ -2,11 +2,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
 import scoreRoutes from './routes/scoreRoutes.ts';
 import leaderboardRoutes from './routes/leaderboardRoutes.ts';
 import authRoutes from './routes/authRoutes.ts';
 import { initializeWebSocketServer } from './services/websocketService.ts';
+import { swaggerSpec } from './config/swagger.ts';
 import { ErrorResponse } from './types/index.ts';
 
 dotenv.config();
@@ -16,21 +18,23 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
-app.use((req: Request, res: Response, next: NextFunction): void => {
+app.use((req: Request, _res: Response, next: NextFunction): void => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response): void => {
+app.get('/health', (_req: Request, res: Response): void => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -38,13 +42,23 @@ app.get('/health', (req: Request, res: Response): void => {
   });
 });
 
+// Swagger API Documentation
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Scoreboard API Documentation',
+  })
+);
+
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/scores', scoreRoutes);
 app.use('/api/v1/scores/leaderboard', leaderboardRoutes);
 
 // 404 handler
-app.use((req: Request, res: Response): void => {
+app.use((_req: Request, res: Response): void => {
   const errorResponse: ErrorResponse = {
     success: false,
     error: {
@@ -56,7 +70,7 @@ app.use((req: Request, res: Response): void => {
 });
 
 // Error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void => {
   console.error('Unhandled error:', err);
   const errorResponse: ErrorResponse = {
     success: false,
@@ -78,7 +92,7 @@ initializeWebSocketServer(server);
 server.listen(PORT, (): void => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 WebSocket server available at ws://localhost:${PORT}/api/v1/scores/live`);
-  console.log(`📚 API Documentation: See README.md`);
+  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
 });
 
 // Graceful shutdown
@@ -99,4 +113,3 @@ process.on('SIGINT', (): void => {
 });
 
 export default app;
-

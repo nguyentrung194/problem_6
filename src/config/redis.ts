@@ -22,7 +22,7 @@ redisClient.on('connect', () => {
 
 // Lazy connection - connect when first used
 let isConnected = false;
-const ensureConnected = async (): Promise<void> => {
+export const ensureConnected = async (): Promise<void> => {
   if (!isConnected && !redisClient.isOpen) {
     try {
       await redisClient.connect();
@@ -34,8 +34,9 @@ const ensureConnected = async (): Promise<void> => {
   }
 };
 
-// Auto-connect on import
-ensureConnected();
+// Auto-connect on import (skip in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  ensureConnected();
+}
 
 export default redisClient;
-
