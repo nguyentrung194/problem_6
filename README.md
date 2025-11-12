@@ -1,7 +1,7 @@
 # Scoreboard Module Specification
 
 > **Implementation Status**: ✅ **COMPLETE**  
-> This specification includes a full working implementation with Docker support. See `SETUP.md` for installation instructions, `DOCKER.md` for Docker setup, and `IMPLEMENTATION.md` for code details.
+> This specification includes a full working implementation with Docker support. See [docs/SETUP.md](./docs/SETUP.md) for installation instructions, [docs/DOCKER.md](./docs/DOCKER.md) for Docker setup, and [docs/IMPLEMENTATION.md](./docs/IMPLEMENTATION.md) for code details.
 
 ## 🚀 Quick Start with Docker
 
@@ -11,7 +11,7 @@ The easiest way to get started:
 docker-compose up
 ```
 
-This will start PostgreSQL, Redis, and the application. See [DOCKER.md](./DOCKER.md) for details.
+This will start PostgreSQL, Redis, and the application. See [docs/DOCKER.md](./docs/DOCKER.md) for details.
 
 ## 📚 API Documentation
 
@@ -26,13 +26,14 @@ The Swagger documentation includes:
 - Authentication requirements
 - Try-it-out functionality to test endpoints directly
 
-See [SWAGGER_TESTING.md](./SWAGGER_TESTING.md) for a complete guide on testing with Swagger.
+See [docs/SWAGGER_TESTING.md](./docs/SWAGGER_TESTING.md) for a complete guide on testing with Swagger.
 
 ## 🚀 Production Deployment
 
-For production deployment instructions, see [DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
+For production deployment instructions, see [docs/PRODUCTION_DEPLOYMENT.md](./docs/PRODUCTION_DEPLOYMENT.md).
 
 The guide covers:
+
 - Docker production deployment
 - Manual server setup
 - Security best practices
@@ -41,14 +42,25 @@ The guide covers:
 
 ## 📋 NPM Scripts
 
-All available npm scripts are documented in [SCRIPTS.md](./SCRIPTS.md).
+All available npm scripts are documented in [docs/SCRIPTS.md](./docs/SCRIPTS.md).
 
 Quick reference:
+
 - `npm run dev` - Start development server with hot-reload
 - `npm test` - Run unit tests
 - `npm run test:integration` - Run integration tests (requires Docker)
 - `npm run format` - Format code with Prettier
 - `npm run type-check` - Check TypeScript types
+
+## 🔧 Pre-commit Hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) to run pre-commit hooks that ensure code quality:
+
+- **Formatting**: Automatically formats staged files with Prettier
+- **Type Checking**: Validates TypeScript types
+- **Testing**: Runs tests for changed files
+
+If pre-commit hooks aren't working, see [docs/HUSKY_TROUBLESHOOTING.md](./docs/HUSKY_TROUBLESHOOTING.md) for setup and troubleshooting.
 
 ## Table of Contents
 

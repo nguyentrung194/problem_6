@@ -87,12 +87,14 @@ WS_MAX_CONNECTIONS=10000
 ### Option 1: Docker Compose (Recommended for Single Server)
 
 1. **Prepare production environment file**:
+
    ```bash
    cp env.example .env.production
    # Edit .env.production with production values
    ```
 
 2. **Build and start services**:
+
    ```bash
    # Build production images
    docker-compose -f docker-compose.prod.yml build
@@ -105,6 +107,7 @@ WS_MAX_CONNECTIONS=10000
    ```
 
 3. **Verify deployment**:
+
    ```bash
    # Check health
    curl http://localhost:3000/health
@@ -121,11 +124,13 @@ WS_MAX_CONNECTIONS=10000
 ### Option 2: Docker Swarm (For Multi-Server Deployment)
 
 1. **Initialize Swarm**:
+
    ```bash
    docker swarm init
    ```
 
 2. **Create secrets**:
+
    ```bash
    echo "your-db-password" | docker secret create db_password -
    echo "your-redis-password" | docker secret create redis_password -
@@ -139,7 +144,7 @@ WS_MAX_CONNECTIONS=10000
 
 ### Option 3: Kubernetes
 
-See [KUBERNETES.md](./KUBERNETES.md) for Kubernetes deployment (if created).
+See [KUBERNETES.md](./KUBERNETES.md) for Kubernetes deployment (if created). Note: This file doesn't exist yet.
 
 ## Manual Deployment
 
@@ -188,6 +193,7 @@ npm run migrate
 ### 4. Start Application
 
 **Using PM2 (Recommended)**:
+
 ```bash
 # Start with PM2
 pm2 start npm --name "scoreboard-service" -- start
@@ -200,12 +206,14 @@ pm2 startup
 ```
 
 **Using systemd**:
+
 ```bash
 # Create systemd service file
 sudo nano /etc/systemd/system/scoreboard.service
 ```
 
 Service file content:
+
 ```ini
 [Unit]
 Description=Scoreboard Service
@@ -225,6 +233,7 @@ WantedBy=multi-user.target
 ```
 
 Enable and start:
+
 ```bash
 sudo systemctl enable scoreboard
 sudo systemctl start scoreboard
@@ -236,6 +245,7 @@ sudo systemctl status scoreboard
 ### PostgreSQL Production Setup
 
 1. **Create production database**:
+
    ```sql
    CREATE DATABASE scoreboard_prod;
    CREATE USER scoreboard_prod_user WITH PASSWORD 'secure-password';
@@ -243,6 +253,7 @@ sudo systemctl status scoreboard
    ```
 
 2. **Run schema migration**:
+
    ```bash
    # Using Docker
    docker-compose -f docker-compose.prod.yml exec app npm run migrate
@@ -260,6 +271,7 @@ sudo systemctl status scoreboard
 ### Redis Production Setup
 
 1. **Configure Redis for production**:
+
    ```conf
    # redis.conf
    requirepass your-secure-redis-password
@@ -312,6 +324,7 @@ sudo systemctl status scoreboard
 ### Application Monitoring
 
 **Using PM2**:
+
 ```bash
 # Monitor application
 pm2 monit
@@ -324,6 +337,7 @@ pm2 status
 ```
 
 **Using systemd**:
+
 ```bash
 # View logs
 sudo journalctl -u scoreboard -f
@@ -335,11 +349,13 @@ sudo systemctl status scoreboard
 ### Health Checks
 
 The application provides a health endpoint:
+
 ```bash
 curl http://localhost:3000/health
 ```
 
 Response:
+
 ```json
 {
   "status": "ok",
@@ -370,6 +386,7 @@ Response:
 1. **Stateless API**: The API is stateless, so you can run multiple instances behind a load balancer
 
 2. **Load Balancer Configuration**:
+
    ```nginx
    # Nginx example
    upstream scoreboard_backend {
@@ -391,7 +408,7 @@ Response:
    }
    ```
 
-3. **WebSocket Scaling**: 
+3. **WebSocket Scaling**:
    - Use Redis Pub/Sub (already implemented)
    - All instances subscribe to the same Redis channel
    - Updates broadcast to all connected clients across instances
@@ -418,6 +435,7 @@ Response:
 ### Database Backups
 
 **Automated Daily Backup**:
+
 ```bash
 #!/bin/bash
 # backup-db.sh
@@ -432,6 +450,7 @@ find $BACKUP_DIR -name "db_*.sql.gz" -mtime +30 -delete
 ```
 
 **Add to crontab**:
+
 ```bash
 0 2 * * * /path/to/backup-db.sh
 ```
@@ -451,12 +470,14 @@ redis-cli --rdb /backups/redis/dump.rdb
 ### Recovery Procedures
 
 **Database Recovery**:
+
 ```bash
 # Restore from backup
 gunzip < /backups/scoreboard/db_20240115.sql.gz | psql -h $DB_HOST -U $DB_USER -d $DB_NAME
 ```
 
 **Application Rollback**:
+
 ```bash
 # Using Git
 git checkout <previous-version>
@@ -582,6 +603,7 @@ sudo certbot --nginx -d api.yourdomain.com
 ### Application Won't Start
 
 1. **Check logs**:
+
    ```bash
    docker-compose -f docker-compose.prod.yml logs app
    # or
@@ -589,11 +611,13 @@ sudo certbot --nginx -d api.yourdomain.com
    ```
 
 2. **Check environment variables**:
+
    ```bash
    docker-compose -f docker-compose.prod.yml config
    ```
 
 3. **Verify database connection**:
+
    ```bash
    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "SELECT 1;"
    ```
@@ -618,11 +642,13 @@ sudo certbot --nginx -d api.yourdomain.com
 ### Database Performance Issues
 
 1. **Check indexes**:
+
    ```sql
    EXPLAIN ANALYZE SELECT * FROM scores ORDER BY score DESC LIMIT 10;
    ```
 
 2. **Monitor slow queries**:
+
    ```sql
    -- Enable slow query log in PostgreSQL
    ```
@@ -634,11 +660,13 @@ sudo certbot --nginx -d api.yourdomain.com
 ### Redis Performance Issues
 
 1. **Check memory usage**:
+
    ```bash
    redis-cli INFO memory
    ```
 
 2. **Monitor hit/miss ratio**:
+
    ```bash
    redis-cli INFO stats
    ```
@@ -649,23 +677,23 @@ sudo certbot --nginx -d api.yourdomain.com
 
 ## Production Environment Variables Reference
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `NODE_ENV` | Environment | `production` | Yes |
-| `PORT` | Server port | `3000` | Yes |
-| `DB_HOST` | Database host | `db.example.com` | Yes |
-| `DB_PORT` | Database port | `5432` | Yes |
-| `DB_NAME` | Database name | `scoreboard_prod` | Yes |
-| `DB_USER` | Database user | `scoreboard_user` | Yes |
-| `DB_PASSWORD` | Database password | `***` | Yes |
-| `REDIS_HOST` | Redis host | `redis.example.com` | Yes |
-| `REDIS_PORT` | Redis port | `6379` | Yes |
-| `REDIS_PASSWORD` | Redis password | `***` | Recommended |
-| `JWT_SECRET` | JWT signing secret | `***` | Yes |
-| `JWT_EXPIRATION` | Token expiration | `24h` | No |
-| `CORS_ORIGIN` | Allowed origins | `https://app.com` | Yes |
-| `RATE_LIMIT_PER_USER` | User rate limit | `60` | No |
-| `RATE_LIMIT_PER_IP` | IP rate limit | `1000` | No |
+| Variable              | Description        | Example             | Required    |
+| --------------------- | ------------------ | ------------------- | ----------- |
+| `NODE_ENV`            | Environment        | `production`        | Yes         |
+| `PORT`                | Server port        | `3000`              | Yes         |
+| `DB_HOST`             | Database host      | `db.example.com`    | Yes         |
+| `DB_PORT`             | Database port      | `5432`              | Yes         |
+| `DB_NAME`             | Database name      | `scoreboard_prod`   | Yes         |
+| `DB_USER`             | Database user      | `scoreboard_user`   | Yes         |
+| `DB_PASSWORD`         | Database password  | `***`               | Yes         |
+| `REDIS_HOST`          | Redis host         | `redis.example.com` | Yes         |
+| `REDIS_PORT`          | Redis port         | `6379`              | Yes         |
+| `REDIS_PASSWORD`      | Redis password     | `***`               | Recommended |
+| `JWT_SECRET`          | JWT signing secret | `***`               | Yes         |
+| `JWT_EXPIRATION`      | Token expiration   | `24h`               | No          |
+| `CORS_ORIGIN`         | Allowed origins    | `https://app.com`   | Yes         |
+| `RATE_LIMIT_PER_USER` | User rate limit    | `60`                | No          |
+| `RATE_LIMIT_PER_IP`   | IP rate limit      | `1000`              | No          |
 
 ## Additional Resources
 
@@ -677,8 +705,8 @@ sudo certbot --nginx -d api.yourdomain.com
 ## Support
 
 For deployment issues:
+
 1. Check application logs
 2. Verify environment configuration
 3. Review this deployment guide
 4. Check GitHub issues (if applicable)
-
