@@ -26,6 +26,19 @@ The Swagger documentation includes:
 - Authentication requirements
 - Try-it-out functionality to test endpoints directly
 
+See [SWAGGER_TESTING.md](./SWAGGER_TESTING.md) for a complete guide on testing with Swagger.
+
+## 📋 NPM Scripts
+
+All available npm scripts are documented in [SCRIPTS.md](./SCRIPTS.md).
+
+Quick reference:
+- `npm run dev` - Start development server with hot-reload
+- `npm test` - Run unit tests
+- `npm run test:integration` - Run integration tests (requires Docker)
+- `npm run format` - Format code with Prettier
+- `npm run type-check` - Check TypeScript types
+
 ## Table of Contents
 
 1. [Overview](#overview)
